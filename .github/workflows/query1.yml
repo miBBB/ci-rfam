@@ -34,5 +34,6 @@ jobs:
       # Runs a single command using the runners shell
       - name: Run script
         run: |
-          mysql --user=rfamro --host=mysql-rfam-public.ebi.ac.uk --port=4497 --database=Rfam < query.sql > result1.txt
+          mysql --user=rfamro --host=mysql-rfam-public.ebi.ac.uk --port=4497 --database=Rfam --batch < query2.sql > result1.txt
+          cat result1.txt
       
