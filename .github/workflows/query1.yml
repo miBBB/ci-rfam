@@ -43,3 +43,8 @@ jobs:
           path: |
             result1.txt
           retention-days: 7
+      - name: Save result
+        uses: actions-js/push@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          force: true
