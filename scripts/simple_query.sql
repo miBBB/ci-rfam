@@ -1,2 +1,3 @@
--- Change
-select * from fr.fram_acc limit 1;
+
+select * from full_region limit 1;
+
