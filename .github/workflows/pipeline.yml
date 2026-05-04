@@ -1,4 +1,4 @@
-name: SQL Pipeline
+name: Rfam SQL Pipeline
 
 on:
   push:
@@ -7,6 +7,9 @@ on:
   pull_request:
     paths:
       - 'scripts/**.sql'
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true   # Принудительно используем Node.js 24
 
 jobs:
   run-sql-query:
@@ -19,24 +22,18 @@ jobs:
       - name: 🧰 Install MySQL client
         run: sudo apt-get update && sudo apt-get install -y mysql-client
 
-      - name: 🔍 Найти изменённые SQL-файлы (без внешних actions)
+      - name: 🔍 Определяем изменённый SQL-файл
         id: changed-files
-        run: |
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            CHANGED=$(git diff --name-only --diff-filter=AM ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep 'scripts/.*\.sql' || true)
-          else
-            CHANGED=$(git diff --name-only --diff-filter=AM ${{ github.event.before }} ${{ github.sha }} | grep 'scripts/.*\.sql' || true)
-          fi
-          echo "files=$CHANGED" >> $GITHUB_OUTPUT
+        uses: tj-actions/changed-files@v44
+        with:
+          files: scripts/**.sql
 
-      - name: ▶️ Запускаем SQL-скрипты
+      - name: ▶️ Запускаем SQL-скрипт
+        if: steps.changed-files.outputs.any_changed == 'true'
+        env:
+          CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
         run: |
-          FILES="${{ steps.changed-files.outputs.files }}"
-          if [ -z "$FILES" ]; then
-            echo "ℹ️ Нет изменённых SQL-файлов"
-            exit 0
-          fi
-          for file in $FILES; do
+          for file in $CHANGED_FILES; do
             echo "📄 Запуск скрипта: $file"
             echo "─────────────────────────"
             mysql \
